@@ -1,7 +1,102 @@
 # DEMO - GenAI RAG system using Databricks 
 
 ## Architecture Diagram
-<img width="2613" height="1682" alt="image" src="https://github.com/user-attachments/assets/3cd91ef1-6fd5-4536-9b7f-95dbdc5925a0" />
+graph TB
+    subgraph "Data Layer"
+        CSV[📄 CSV Data Sources] --> DeltaLake[(🗄️ Delta Lake Tables)]
+        DeltaLake --> VectorSearch[🔍 Vector Search Index]
+    end
+    
+    subgraph "Unity Catalog"
+        UC[🏛️ Unity Catalog]
+        UCFunctions[⚙️ UC Functions as Tools]
+        UC --> DeltaLake
+        UC --> MLFlow
+        UC --> VectorSearch
+    end
+    
+    subgraph "ML & Agent Layer"
+        AgentModel[🤖 Agent Model<br/>LangGraph-based]
+        MLFlow[📊 MLflow<br/>Tracking & Registry]
+        AgentModel --> MLFlow
+        VectorSearch -.retrieval.-> AgentModel
+        UCFunctions -.tools.-> AgentModel
+    end
+    
+    subgraph "Mosaic AI Platform"
+        MosaicAgent[✨ Mosaic AI Agent Framework]
+        ModelServing[🚀 Model Serving Endpoint]
+        AgentModel --> MosaicAgent
+        MosaicAgent --> ModelServing
+    end
+    
+    subgraph "Orchestration & Deployment"
+        DAB[📦 Databricks Asset Bundle]
+        Workflows[⚡ Databricks Workflows]
+        CICD[🔄 CI/CD Jobs]
+        DAB --> Workflows
+        CICD --> DAB
+    end
+    
+    subgraph "Application Layer"
+        Streamlit[💬 Streamlit UI App]
+        API[🔌 Databricks SDK]
+        Streamlit --> API
+        API --> ModelServing
+    end
+    
+    subgraph "Development & Operations"
+        Ingest[📥 ingest_data_deltalake.py]
+        CreateIndex[🔨 create_vector_index.py]
+        Register[📝 register_agent_model.py]
+        Evaluate[✅ evaluate_agent_model.py]
+        Serve[🌐 serve_agent_model.py]
+        Rollback[⏮️ rollback_agent_model.py]
+        Delete[🗑️ delete_project.py]
+    end
+    
+    Workflows --> Ingest
+    Ingest --> CreateIndex
+    CreateIndex --> Register
+    Register --> Evaluate
+    Evaluate --> Serve
+    Serve --> Rollback
+    Rollback --> Delete
+    
+    CSV --> Ingest
+    Ingest --> DeltaLake
+    CreateIndex --> VectorSearch
+    Register --> MLFlow
+    Evaluate --> MLFlow
+    Serve --> ModelServing
+    
+    style CSV fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style DeltaLake fill:#c8e6c9,stroke:#388e3c,stroke-width:3px,color:#000
+    style VectorSearch fill:#fff9c4,stroke:#f57c00,stroke-width:2px,color:#000
+    
+    style UC fill:#00a972,stroke:#006b4d,stroke-width:3px,color:#fff
+    style UCFunctions fill:#4db6ac,stroke:#00897b,stroke-width:2px,color:#fff
+    
+    style AgentModel fill:#ce93d8,stroke:#8e24aa,stroke-width:3px,color:#000
+    style MLFlow fill:#81c784,stroke:#388e3c,stroke-width:3px,color:#000
+    
+    style MosaicAgent fill:#ff3621,stroke:#c62828,stroke-width:3px,color:#fff
+    style ModelServing fill:#ff7043,stroke:#d84315,stroke-width:3px,color:#fff
+    
+    style DAB fill:#ff6f00,stroke:#e65100,stroke-width:3px,color:#fff
+    style Workflows fill:#ffa726,stroke:#f57c00,stroke-width:3px,color:#000
+    style CICD fill:#ffb74d,stroke:#fb8c00,stroke-width:2px,color:#000
+    
+    style Streamlit fill:#90caf9,stroke:#1976d2,stroke-width:3px,color:#000
+    style API fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#fff
+    
+    style Ingest fill:#b39ddb,stroke:#5e35b1,stroke-width:2px,color:#000
+    style CreateIndex fill:#9fa8da,stroke:#3949ab,stroke-width:2px,color:#000
+    style Register fill:#81d4fa,stroke:#0277bd,stroke-width:2px,color:#000
+    style Evaluate fill:#80cbc4,stroke:#00695c,stroke-width:2px,color:#000
+    style Serve fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px,color:#000
+    style Rollback fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000
+    style Delete fill:#ef9a9a,stroke:#c62828,stroke-width:2px,color:#000
 
 ### Project Overview
 The **Electronics Agent System** is a production-ready, enterprise-grade AI agent platform built on the latest Databricks GenAI stack. It manages electronic component data through intelligent RAG (Retrieval-Augmented Generation) capabilities, featuring full MLOps lifecycle management, version control, and automated deployment pipelines.
