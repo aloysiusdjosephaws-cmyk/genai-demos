@@ -1,6 +1,7 @@
 # DEMO - GenAI RAG system using Databricks 
 
 ## Architecture Diagram
+```mermaid
 graph TB
     subgraph "Data Layer"
         CSV[📄 CSV Data Sources] --> DeltaLake[(🗄️ Delta Lake Tables)]
@@ -97,7 +98,7 @@ graph TB
     style Serve fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px,color:#000
     style Rollback fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000
     style Delete fill:#ef9a9a,stroke:#c62828,stroke-width:2px,color:#000
-
+```
 ### Project Overview
 The **Electronics Agent System** is a production-ready, enterprise-grade AI agent platform built on the latest Databricks GenAI stack. It manages electronic component data through intelligent RAG (Retrieval-Augmented Generation) capabilities, featuring full MLOps lifecycle management, version control, and automated deployment pipelines.
 
