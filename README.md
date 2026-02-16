@@ -1,6 +1,8 @@
 # DEMO - GenAI RAG system using Databricks 
 
 ## Architecture Diagram
+<img width="707" height="363" alt="image" src="https://github.com/user-attachments/assets/8ccf1958-3542-4b68-9423-ca2a34cedb15" />
+
 ```mermaid
 graph TB
     subgraph "Data Layer"
