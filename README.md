@@ -55,15 +55,15 @@ graph TB
         Serve[serve_agent_model.py]
         Rollback[rollback_agent_model.py]
         Delete[delete_project.py]
-        
-        Workflows --> Ingest
-        Workflows --> CreateIndex
-        Workflows --> Register
-        Workflows --> Evaluate
-        Workflows --> Serve
-        Workflows --> Rollback
-        Workflows --> Delete
     end
+    
+    Workflows --> Ingest
+    Ingest --> CreateIndex
+    CreateIndex --> Register
+    Register --> Evaluate
+    Evaluate --> Serve
+    Serve --> Rollback
+    Rollback --> Delete
     
     CSV --> Ingest
     Ingest --> DeltaLake
