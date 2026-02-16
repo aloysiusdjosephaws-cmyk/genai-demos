@@ -1,9 +1,11 @@
 # DEMO - GenAI RAG system using Databricks 
 
-## Architecture Diagram
+## Retrieval Augmented Generation using Databricks - Query your Data using natural language
 <img width="707" height="363" alt="image" src="https://github.com/user-attachments/assets/8ccf1958-3542-4b68-9423-ca2a34cedb15" />
 
+## Demo Architecture Diagram
 ```mermaid
+%%{init: {'theme':'default', 'themeVariables': {'clusterBkg':'#fafafa'}}}%%
 graph TB
     subgraph "Data Layer"
         CSV[📄 CSV Data Sources] --> DeltaLake[(🗄️ Delta Lake Tables)]
@@ -73,33 +75,27 @@ graph TB
     Evaluate --> MLFlow
     Serve --> ModelServing
     
-    style CSV fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    style DeltaLake fill:#c8e6c9,stroke:#388e3c,stroke-width:3px,color:#000
-    style VectorSearch fill:#fff9c4,stroke:#f57c00,stroke-width:2px,color:#000
-    
-    style UC fill:#00a972,stroke:#006b4d,stroke-width:3px,color:#fff
-    style UCFunctions fill:#4db6ac,stroke:#00897b,stroke-width:2px,color:#fff
-    
-    style AgentModel fill:#ce93d8,stroke:#8e24aa,stroke-width:3px,color:#000
-    style MLFlow fill:#81c784,stroke:#388e3c,stroke-width:3px,color:#000
-    
-    style MosaicAgent fill:#ff3621,stroke:#c62828,stroke-width:3px,color:#fff
-    style ModelServing fill:#ff7043,stroke:#d84315,stroke-width:3px,color:#fff
-    
-    style DAB fill:#ff6f00,stroke:#e65100,stroke-width:3px,color:#fff
-    style Workflows fill:#ffa726,stroke:#f57c00,stroke-width:3px,color:#000
-    style CICD fill:#ffb74d,stroke:#fb8c00,stroke-width:2px,color:#000
-    
-    style Streamlit fill:#90caf9,stroke:#1976d2,stroke-width:3px,color:#000
-    style API fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#fff
-    
-    style Ingest fill:#b39ddb,stroke:#5e35b1,stroke-width:2px,color:#000
-    style CreateIndex fill:#9fa8da,stroke:#3949ab,stroke-width:2px,color:#000
-    style Register fill:#81d4fa,stroke:#0277bd,stroke-width:2px,color:#000
-    style Evaluate fill:#80cbc4,stroke:#00695c,stroke-width:2px,color:#000
-    style Serve fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px,color:#000
-    style Rollback fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000
-    style Delete fill:#ef9a9a,stroke:#c62828,stroke-width:2px,color:#000
+    style CSV fill:#bbdefb,stroke:#1565c0,stroke-width:3px,color:#000
+    style DeltaLake fill:#81c784,stroke:#2e7d32,stroke-width:4px,color:#fff
+    style VectorSearch fill:#fff176,stroke:#f57f17,stroke-width:3px,color:#000
+    style UC fill:#00a972,stroke:#004d3a,stroke-width:4px,color:#fff
+    style UCFunctions fill:#26a69a,stroke:#00695c,stroke-width:3px,color:#fff
+    style AgentModel fill:#ba68c8,stroke:#6a1b9a,stroke-width:4px,color:#fff
+    style MLFlow fill:#66bb6a,stroke:#2e7d32,stroke-width:4px,color:#fff
+    style MosaicAgent fill:#ff3621,stroke:#b71c1c,stroke-width:4px,color:#fff
+    style ModelServing fill:#ff5722,stroke:#d84315,stroke-width:4px,color:#fff
+    style DAB fill:#ff9800,stroke:#e65100,stroke-width:4px,color:#fff
+    style Workflows fill:#ffb74d,stroke:#f57c00,stroke-width:4px,color:#000
+    style CICD fill:#ffd54f,stroke:#ff6f00,stroke-width:3px,color:#000
+    style Streamlit fill:#42a5f5,stroke:#0d47a1,stroke-width:4px,color:#fff
+    style API fill:#1e88e5,stroke:#0d47a1,stroke-width:3px,color:#fff
+    style Ingest fill:#9575cd,stroke:#4527a0,stroke-width:3px,color:#fff
+    style CreateIndex fill:#7986cb,stroke:#283593,stroke-width:3px,color:#fff
+    style Register fill:#4fc3f7,stroke:#01579b,stroke-width:3px,color:#000
+    style Evaluate fill:#4db6ac,stroke:#004d40,stroke-width:3px,color:#fff
+    style Serve fill:#9ccc65,stroke:#33691e,stroke-width:3px,color:#000
+    style Rollback fill:#ffb74d,stroke:#e65100,stroke-width:3px,color:#000
+    style Delete fill:#ef5350,stroke:#b71c1c,stroke-width:3px,color:#fff
 ```
 ### Project Overview
 The **Electronics Agent System** is a production-ready, enterprise-grade AI agent platform built on the latest Databricks GenAI stack. It manages electronic component data through intelligent RAG (Retrieval-Augmented Generation) capabilities, featuring full MLOps lifecycle management, version control, and automated deployment pipelines.
