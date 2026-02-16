@@ -185,4 +185,7 @@ databricks bundle deploy --target dev
 
 # Run the app UI
 databricks bundle run app-ui --target dev 
+```
+
+<img width="1317" height="984" alt="image" src="https://github.com/user-attachments/assets/854b1ea9-b3ee-428d-b144-4943f3d04c00" />
 
