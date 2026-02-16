@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: electronics
+Version: 0.1.0
+Requires-Dist: mlflow==3.9.0
+Requires-Dist: databricks-agents==1.9.3
+Requires-Dist: databricks-langchain==0.14.0
+Requires-Dist: databricks-vectorsearch==0.64
+Requires-Dist: langgraph==1.0.6
+Requires-Dist: langchain==1.2.6
+Requires-Dist: databricks-sdk==0.82.0
+Requires-Dist: databricks-sdk[openai]==0.82.0
+Requires-Dist: pandas
+Requires-Dist: pyyaml==6.0.3
+Requires-Dist: cloudpickle==3.1.2
+Requires-Dist: flask==3.1.2
+Requires-Dist: setuptools==80.10.2

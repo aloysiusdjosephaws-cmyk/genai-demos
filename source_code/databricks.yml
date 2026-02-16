@@ -14,7 +14,7 @@ targets:
     default: true
     mode: development
     workspace:
-      #host: "https://dbc-520ddc8b-7d6b.cloud.databricks.com"
+      host: "https://dbc-520ddc8b-7d6b.cloud.databricks.com"
   prod:
     mode: production
     workspace:
@@ -54,9 +54,9 @@ variables:
   logs_path:
     default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/logs/" 
   source_code_path:
-    default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/source_code/"      
+    default: "/Workspace/Users/${workspace.current_user.userName}/genai-demos/source_code/"      
   documentation_path:
-    default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/documentation/"     
+    default: "/Workspace/Users/${workspace.current_user.userName}/genai-demos/documentation/"     
   experiment_path:
     default: "/Users/${workspace.current_user.userName}/${bundle.name}/experiment/"
   function_name: 
@@ -285,7 +285,7 @@ resources:
       config:
         #command: ['streamlit', 'run', 'app.py']
         env:
-        - name: workspace_host
+        - name: host
           value: ${workspace.host}
         - name: token
           value: ${var.token}

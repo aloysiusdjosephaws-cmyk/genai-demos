@@ -1,0 +1,11 @@
+[console_scripts]
+_create_vector_index = source_pkg.create_vector_index:main
+_delete_project = source_pkg.delete_project:main
+_document_code = source_pkg.document_code:main
+_document_project = source_pkg.document_project:main
+_evaluate_agent_model = source_pkg.evaluate_agent_model:main
+_ingest_data_deltalake = source_pkg.ingest_data_deltalake:main
+_register_agent_model = source_pkg.register_agent_model:main
+_rollback_agent_model = source_pkg.rollback_agent_model:main
+_serve_agent_model = source_pkg.serve_agent_model:main
+_test_agent_model = source_pkg.test_agent_model:main
