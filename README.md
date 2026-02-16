@@ -1,86 +1,7 @@
-# Electronics Agent System - Consolidated Architecture & Summary
+# DEMO GenAI RAG system using databricks - Electronics Agent System 
 
 ## Architecture Diagram
-
-```mermaid
-graph TB
-    subgraph "Data Layer"
-        CSV[CSV Data Sources] --> DeltaLake[(Delta Lake Tables)]
-        DeltaLake --> VectorSearch[Vector Search Index]
-    end
-    
-    subgraph "Unity Catalog"
-        UC[Unity Catalog]
-        UCFunctions[UC Functions as Tools]
-        UC --> DeltaLake
-        UC --> MLFlow
-        UC --> VectorSearch
-    end
-    
-    subgraph "ML & Agent Layer"
-        AgentModel[Agent Model<br/>LangGraph-based]
-        MLFlow[MLflow<br/>Tracking & Registry]
-        AgentModel --> MLFlow
-        VectorSearch -.retrieval.-> AgentModel
-        UCFunctions -.tools.-> AgentModel
-    end
-    
-    subgraph "Mosaic AI Platform"
-        MosaicAgent[Mosaic AI Agent Framework]
-        ModelServing[Model Serving Endpoint]
-        AgentModel --> MosaicAgent
-        MosaicAgent --> ModelServing
-    end
-    
-    subgraph "Orchestration & Deployment"
-        DAB[Databricks Asset Bundle]
-        Workflows[Databricks Workflows]
-        CICD[CI/CD Jobs]
-        DAB --> Workflows
-        CICD --> DAB
-    end
-    
-    subgraph "Application Layer"
-        Streamlit[Streamlit UI App]
-        API[Databricks SDK]
-        Streamlit --> API
-        API --> ModelServing
-    end
-    
-    subgraph "Development & Operations"
-        Ingest[ingest_data_deltalake.py]
-        CreateIndex[create_vector_index.py]
-        Register[register_agent_model.py]
-        Evaluate[evaluate_agent_model.py]
-        Serve[serve_agent_model.py]
-        Rollback[rollback_agent_model.py]
-        Delete[delete_project.py]
-    end
-    
-    Workflows --> Ingest
-    Ingest --> CreateIndex
-    CreateIndex --> Register
-    Register --> Evaluate
-    Evaluate --> Serve
-    Serve --> Rollback
-    Rollback --> Delete
-    
-    CSV --> Ingest
-    Ingest --> DeltaLake
-    CreateIndex --> VectorSearch
-    Register --> MLFlow
-    Evaluate --> MLFlow
-    Serve --> ModelServing
-    
-    style UC fill:#00a972
-    style DeltaLake fill:#00a972
-    style MLFlow fill:#00a972
-    style VectorSearch fill:#00a972
-    style MosaicAgent fill:#ff3621
-    style DAB fill:#ff3621
-```
-
-## Consolidated Summary
+<img width="2613" height="1682" alt="image" src="https://github.com/user-attachments/assets/3cd91ef1-6fd5-4536-9b7f-95dbdc5925a0" />
 
 ### Project Overview
 The **Electronics Agent System** is a production-ready, enterprise-grade AI agent platform built on the latest Databricks GenAI stack. It manages electronic component data through intelligent RAG (Retrieval-Augmented Generation) capabilities, featuring full MLOps lifecycle management, version control, and automated deployment pipelines.
@@ -157,13 +78,6 @@ Using Databricks Asset Bundles, the system supports:
 6. **Rollback**: Version control with one-command rollback
 7. **Cleanup**: `databricks bundle destroy`
 
-### Project Structure
-The package follows Python best practices with modular components, clear separation of concerns, and comprehensive tooling for the complete agent lifecycle—from data ingestion through production deployment and maintenance.
-<img width="2613" height="1682" alt="image" src="https://github.com/user-attachments/assets/3cd91ef1-6fd5-4536-9b7f-95dbdc5925a0" />
-
-# DEMO: GenAI Agent Platform for Electronic Components
-
-The **Electronics** project is a production-ready Python package for managing, deploying, and scaling agentic AI models on the **Databricks Mosaic AI** platform. It utilizes a state-of-the-art stack including **LangGraph** for orchestration, **Unity Catalog (UC)** for governance, and **Databricks Asset Bundles (DABs)** for CI/CD.
 
 ## 🏗️ Architecture Overview
 
