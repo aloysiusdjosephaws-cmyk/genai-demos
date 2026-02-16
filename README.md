@@ -1,6 +1,6 @@
 # DEMO - GenAI RAG system using Databricks 
 
-## Retrieval Augmented Generation using Databricks - Query your Data using natural language
+## Retrieval Augmented Generation using Databricks
 <img width="707" height="363" alt="image" src="https://github.com/user-attachments/assets/8ccf1958-3542-4b68-9423-ca2a34cedb15" />
 
 ## Demo Architecture Diagram
