@@ -54,10 +54,11 @@ Manage the project lifecycle using the [Databricks CLI](https://docs.databricks.
 
 ```bash
 # Validate the bundle configuration
-databricks bundle validate
+databricks bundle validate --target dev
 
 # Deploy the stack to the dev environment
 databricks bundle deploy --target dev
 
-# Run the ingestion and training workflow
-databricks bundle run electronics_workflow
+# Run the app UI
+databricks bundle run app-ui --target dev 
+
