@@ -1,4 +1,4 @@
-# Electronics: GenAI Agent Platform for Electronic Components
+# DEMO: GenAI Agent Platform for Electronic Components
 
 The **Electronics** project is a production-ready Python package for managing, deploying, and scaling agentic AI models on the **Databricks Mosaic AI** platform. It utilizes a state-of-the-art stack including **LangGraph** for orchestration, **Unity Catalog (UC)** for governance, and **Databricks Asset Bundles (DABs)** for CI/CD.
 
