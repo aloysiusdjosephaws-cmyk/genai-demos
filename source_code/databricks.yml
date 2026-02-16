@@ -1,0 +1,293 @@
+bundle:
+  name: electronics
+
+# Ensure the Catalog and Schema exists
+# Artifacts: Automatic Wheel Building
+artifacts:
+  default:
+    type: whl
+    path: .
+    dynamic_version: true
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      #host: "https://dbc-520ddc8b-7d6b.cloud.databricks.com"
+  prod:
+    mode: production
+    workspace:
+      #host: "https://dbc-520ddc8b-7d6b.cloud.databricks.com"
+
+# UC catalog items catalog.schema. ex. table, model
+# Workspace resources do not have c.s format ex. app, vse, serving endpoint
+variables:
+  sql_warehouse_id:
+  #  default: "${var.warehouse_id}"
+  catalog:
+    default: "${bundle.name}_catalog_${bundle.target}_${workspace.current_user.short_name}"
+  schema:
+    default: "${bundle.name}_schema"
+  table_name:
+    default: "${bundle.name}_catalog_${bundle.target}_${workspace.current_user.short_name}.${bundle.name}_schema.${bundle.name}_table"
+  metadata_volume:
+    default: "/Volumes/${bundle.name}_catalog_${bundle.target}_${workspace.current_user.short_name}/${bundle.name}_schema/ingestion_metadata"
+  model_name:
+    default: "${bundle.name}_catalog_${bundle.target}_${workspace.current_user.short_name}.${bundle.name}_schema.${bundle.name}_model"
+  vs_endpoint_name:
+    default: "${bundle.name}-ve-${bundle.target}"
+  serving_endpoint_name:
+    default: "${bundle.name}-se-${bundle.target}"
+  app_name:
+    default: "${bundle.name}-app-${bundle.target}"
+  embedding_llm_model:
+    default: "databricks-gte-large-en"
+  llm_model:
+    default: "databricks-gemma-3-12b"
+    #default: "databricks-meta-llama-3-3-70b-instruct"
+  eval_llm_model:
+    default: "databricks-gemma-3-12b"
+    #default: "databricks-meta-llama-3-1-405b-instruct"
+  source_path:
+    default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/raw_data/"
+  logs_path:
+    default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/logs/" 
+  source_code_path:
+    default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/source_code/"      
+  documentation_path:
+    default: "/Workspace/Users/${workspace.current_user.userName}/${bundle.name}/documentation/"     
+  experiment_path:
+    default: "/Users/${workspace.current_user.userName}/${bundle.name}/experiment/"
+  function_name: 
+    default: "${bundle.name}_catalog_${bundle.target}_${workspace.current_user.short_name}.${bundle.name}_schema.${bundle.name}_function"
+  system_prompt:
+    default: "You are an expert assistant. Always select best tool to search."
+  llm_temperature:
+    default: "0.01"
+  max_tokens:
+    default: "512"
+  workload_size:
+    default: "Small"
+  token:
+  #  default: "${var.token}"
+
+  common_tags:
+    description: "Dynamic tags shared across all jobs"
+    default:
+      Project: "${bundle.name} -RAG"
+      ResourceOwner: "${workspace.current_user.short_name}"
+      Environment: "${bundle.target}" # Automatically picks 'dev' or 'prod'
+  common_schedule:
+    description: "Dynamic schedule shared across all jobs"
+    default:
+      quartz_cron_expression: "0 0 12 * * ?"
+      timezone_id: "UTC"
+      pause_status: PAUSED
+  common_environments:
+    description: "Dynamic environment shared across all jobs"
+    default:
+      - environment_key: "default"
+        spec:
+          environment_version: "2" # This tells it to use the managed serverless client
+          dependencies:
+            - "./dist/*.whl"
+            - "-r ./requirements.txt"
+
+  task_params:
+    type: complex
+    default:
+      - "--catalog"
+      - "${var.catalog}"
+      - "--schema"
+      - "${var.schema}"
+      - "--table_name"
+      - "${var.table_name}"
+      - "--vs_index_name"
+      - "${var.table_name}_index"
+      - "--function_name"
+      - "${var.function_name}"      
+      - "--model_name"
+      - "${var.model_name}"
+      - "--metadata_volume"
+      - "${var.metadata_volume}"
+      - "--vs_endpoint_name"
+      - "${var.vs_endpoint_name}"
+      - "--serving_endpoint_name"
+      - "${var.serving_endpoint_name}"
+      - "--embedding_llm_model"
+      - "${var.embedding_llm_model}"
+      - "--llm_model"
+      - "${var.llm_model}"
+      - "--source_path"
+      - "${var.source_path}"
+      - "--source_code_path"
+      - "${var.source_code_path}"      
+      - "--documentation_path"
+      - "${var.documentation_path}"
+      - "--experiment_path"
+      - "${var.experiment_path}"
+      - "--eval_llm_model"
+      - "${var.eval_llm_model}"
+      - "--system_prompt"
+      - "${var.system_prompt}"
+      - "--llm_temperature"
+      - "${var.llm_temperature}"
+      - "--max_tokens"
+      - "${var.max_tokens}"
+      - "--workload_size"
+      - "${var.workload_size}"
+      - "--workspace_host"
+      - "${workspace.host}"
+      - "--alias"
+      - "${bundle.target}"
+      - "--app_name"
+      - "${var.app_name}"
+      - "--logs_path"
+      - "${var.logs_path}"
+      - "--token"
+      - "${var.token}"      
+
+resources:  
+  # Automatically creates the Schema inside that Catalog
+  #schemas:
+  #  main_schema:
+  #    name: "${var.schema}"
+  #    catalog_name: "${var.catalog}"
+  #    comment: "Schema for project ${bundle.name}"
+  # Automatically creates the Volume for Auto Loader checkpoints and schemas
+  volumes:
+    ingestion_metadata:
+      name: ingestion_metadata
+      catalog_name: ${var.catalog}
+      schema_name: ${var.schema}
+      volume_type: MANAGED
+
+  jobs:
+    deploy_rag_system:
+      name: "${bundle.name} deploy"
+      schedule: ${var.common_schedule}
+      tags: ${var.common_tags}
+      environments: ${var.common_environments}
+      tasks:
+        - task_key: ingest_data_deltalake
+          environment_key: "default"
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_ingest_data_deltalake"
+            parameters: ${var.task_params}
+
+        - task_key: create_vector_index
+          environment_key: "default"
+          depends_on: [{ task_key: ingest_data_deltalake }]
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_create_vector_index"
+            parameters: ${var.task_params}
+
+        - task_key: register_agent_model
+          environment_key: "default"
+          depends_on: [{ task_key: create_vector_index }]
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_register_agent_model"
+            parameters: ${var.task_params} 
+
+        - task_key: evaluate_agent_model
+          environment_key: "default"
+          depends_on: [{ task_key: register_agent_model }]
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_evaluate_agent_model"
+            parameters: ${var.task_params}
+
+        - task_key: serve_agent_model
+          environment_key: "default"
+          depends_on: [{ task_key: evaluate_agent_model }]
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_serve_agent_model"
+            parameters: ${var.task_params}
+
+        - task_key: test_agent_model
+          environment_key: "default"
+          depends_on: [{ task_key: serve_agent_model }]
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_test_agent_model"
+            parameters: ${var.task_params} 
+
+    rollback_rag_system:
+      name: "${bundle.name} rollback"
+      schedule: ${var.common_schedule}
+      tags: ${var.common_tags}
+      environments: ${var.common_environments}
+      tasks:
+        - task_key: rollback_agent_model
+          environment_key: "default"
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_rollback_agent_model"
+            parameters: ${var.task_params}
+
+    delete_rag_system:
+      name: "${bundle.name} delete"
+      schedule: ${var.common_schedule}
+      tags: ${var.common_tags}
+      environments: ${var.common_environments}
+      tasks:
+        - task_key: delete_project
+          environment_key: "default"
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_delete_project"
+            parameters: ${var.task_params}
+ 
+    document_rag_system:
+      name: "${bundle.name} document"
+      schedule: ${var.common_schedule}
+      tags: ${var.common_tags}
+      environments: ${var.common_environments}
+      tasks:
+        - task_key: document_code
+          environment_key: "default"
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_document_code"
+            parameters: ${var.task_params}    
+
+        - task_key: document_project
+          environment_key: "default"
+          python_wheel_task:
+            package_name: "${bundle.name}"
+            entry_point: "_document_project"
+            parameters: ${var.task_params}
+
+    init_uc_objects: 
+      name: "${bundle.name} functions"
+      schedule: ${var.common_schedule}
+      tags: ${var.common_tags}
+      environments: ${var.common_environments}          
+      tasks:
+        - task_key: create_uc_functions
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id} 
+            file: 
+              path: ./src/source_pkg/sql/create_functions.sql
+            parameters:
+              function_name: "${var.function_name}"
+              vs_index_name: "${var.table_name}_index"        
+
+  apps:
+    app-ui:
+      name: "${var.app_name}"
+      source_code_path: ./src/streamlit-app
+      config:
+        #command: ['streamlit', 'run', 'app.py']
+        env:
+        - name: workspace_host
+          value: ${workspace.host}
+        - name: token
+          value: ${var.token}
+        - name: serving_endpoint_name
+          value: ${var.serving_endpoint_name}
