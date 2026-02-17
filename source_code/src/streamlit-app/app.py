@@ -13,13 +13,13 @@ ENDPOINT_URL = f"{DATABRICKS_HOST}/serving-endpoints/{SERVING_ENDPOINT_NAME}/inv
 print(f"endpoint URL-{ENDPOINT_URL}")
 
 st.set_page_config(page_title="Databricks Agent Demo", layout="wide")
-st.title("🤖 Get information about electronics products")
+st.title("DEMO - GenAI RAG system using Databricks")
 
 # --- 2. Session Initialization ---
 if "chats" not in st.session_state:
     st.session_state.chats = {}
     first_id = str(uuid.uuid4())
-    st.session_state.chats[first_id] = {"name": ".", "messages": []}
+    st.session_state.chats[first_id] = {"name": " ", "messages": []}
     st.session_state.current_id = first_id
 
 # --- 3. Sidebar Management ---
@@ -51,10 +51,10 @@ for msg in current_chat["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-if prompt := st.chat_input("Ask me anything..."):
+if prompt := st.chat_input("Best headphones less than $300?"):
     # Update Chat Name on first message
     if not current_chat["messages"]:
-        current_chat["name"] = prompt[:20] + "..."
+        current_chat["name"] = prompt[:10] + "..."
     
     # Add user message to state and display
     current_chat["messages"].append({"role": "user", "content": prompt})
@@ -72,7 +72,7 @@ if prompt := st.chat_input("Ask me anything..."):
             }
             
             try:
-                response = requests.post(ENDPOINT_URL, headers=headers, json=payload, timeout=120)
+                response = requests.post(ENDPOINT_URL, headers=headers, json=payload)
 
                 if response.status_code == 200:
                     data = response.json()                    
