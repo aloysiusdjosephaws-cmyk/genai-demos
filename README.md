@@ -189,3 +189,102 @@ databricks bundle run app-ui --target dev
 
 <img width="1317" height="984" alt="image" src="https://github.com/user-attachments/assets/854b1ea9-b3ee-428d-b144-4943f3d04c00" />
 
+## DevSecOps
+
+### Development
+```mermaid
+graph TD
+    User((User / Streamlit UI)) -->|1. Query| GuardIn{Input Guardrail}
+    GuardIn -->|Unsafe| Abort[Policy Violation Redaction]
+    
+    subgraph "Agent Decision Logic"
+    GuardIn -->|Safe| Agent[Electronics Agent]
+    Agent -->|2. Internal Prompt| SystemPrompt[Prompt: Use Catalog First]
+    Agent -->|3. Tool Metadata| ToolDesc[Function Comments]
+    Agent -->|4. Decides to Use| Tool[UC Search Tool]
+    end
+
+    subgraph "Hybrid Search Mechanism"
+    Tool -->|5. Embed Query| EmbedLLM[Embedding LLM]
+    EmbedLLM -->|Vector Search| VIndex[Description Vector Index]
+    Tool -->|Keyword Search| Category[Category Column]
+    VIndex & Category -->|Retrieve| Context[Delta Lake Context]
+    end
+
+    subgraph "Response Generation"
+    Context -->|6. Check Data| Choice{Found in Catalog?}
+    Choice -->|Yes| Finalize[Format Agent Response]
+    Choice -->|No| Foundation[Foundational LLM + Source Note]
+    Foundation --> Finalize
+    end
+
+    Finalize --> GuardOut{Output Guardrail}
+    GuardOut -->|Safe| Success[Final Result + TraceID]
+    Success -->|7. Observe| MLflow[(MLflow Traces)]
+    Success --> User
+
+```
+### Operations
+```mermaid
+graph TD
+    subgraph "1. Infrastructure as Code (DAB)"
+        DAB[databricks.yml Blueprint]
+        WHEEL[Python Wheel Packaging]
+        CONFIG[YAML Configs: No Hardcoding]
+        
+        DAB --- WHEEL
+        DAB --- CONFIG
+    end
+
+    subgraph "2. Automated Orchestration (Jobs & Tasks)"
+        JOB[DAB Job Trigger]
+        TASK1[Task: Ingest CSV to Delta Lake]
+        CDF[Change Data Feed Enabled]
+        TASK2[Task: Create Vector Index & Endpoint]
+        TASK3[Task: Deploy Agent to Mosaic AI]
+        DELETE[Task: Resource Cleanup / Delete]
+
+        JOB --> TASK1
+        TASK1 --- CDF
+        TASK1 --> TASK2
+        TASK2 --> TASK3
+        TASK3 -.-> DELETE
+    end
+
+    subgraph "3. Governance Layer (Unity Catalog)"
+        UC{Unity Catalog}
+        TABLES[(Delta Tables)]
+        FUNCS[Search Functions / Tools]
+        MODELS[Agent Models]
+        
+        UC --- TABLES
+        UC --- FUNCS
+        UC --- MODELS
+    end
+
+    subgraph "4. AI-Assisted Maintenance"
+        COPY[Project Copy Task]
+        DOCS[Auto-Docstring Generation]
+        SUMMARY[Weak LLM: Code & Arch Summary]
+        
+        COPY --> DOCS
+        DOCS --> SUMMARY
+    end
+
+    subgraph "5. Production Support & Observability"
+        REST[REST API Serving Endpoint]
+        MLFLOW[(MLflow Trace & Lineage UI)]
+        STREAM[Streamlit UI Connection]
+    end
+
+    %% Connection Flows
+    DAB -->|Deploy Bundle| JOB
+    TASK3 -->|Register Artifacts| UC
+    UC -->|Served via| REST
+    REST -->|Logs TraceID| MLFLOW
+    STREAM -->|Queries| REST
+e
+
+
+```
+
