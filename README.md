@@ -194,96 +194,76 @@ databricks bundle run app-ui --target dev
 ### Development
 ```mermaid
 graph LR
-    %% Global Styles
-    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000;
-    classDef internal stroke-dasharray: 5 5;
+    %% Development Focus Styles
+    classDef default fill:#fff,stroke:#000,stroke-width:1px,color:#000;
+    classDef dev fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef guard fill:#ffebee,stroke:#c62828,stroke-width:2px;
 
-    %% Column 1: Input & Brain
-    subgraph C1 [Input & Processing]
-        direction TB
-        USER((User / Streamlit UI)) --> GIN{Input Guardrail}
-        GIN -->|Safe Query| AGENT[Main LLM / Agent]
-        AGENT --- PROMPT[System Prompt: Catalog First]
-        AGENT --- META[Tool Metadata / Comments]
+    subgraph SEC [Security & Dev Quality Plane]
+        GIN{Input Guardrail}
+        GOUT{Output Guardrail}
+        META[Tool Metadata / Comments]
+        PROMPT[System Prompt: Catalog First]
     end
 
-    %% Column 2: Search & Logic
-    subgraph C2 [Vector & Retrieval Logic]
-        direction TB
+    subgraph Flow [Development Lifecycle]
+        USER((User / Streamlit UI)) --> GIN
+        GIN -->|Safe Query| AGENT[Main LLM / Agent]
+        AGENT --- PROMPT
+        AGENT --- META
         AGENT --> TOOL[UC Search Tool / Function]
         TOOL --> VSE[Vector Search Endpoint]
-        subgraph Internal [Internal Embedding Logic]
-            EMB((Embedding LLM)) -.-> VIX[(Vector Index Table)]
-        end
-        VSE -.-> EMB
+        VSE -.-> EMB((Embedding LLM)) -.-> VIX[(Vector Index Table)]
         VIX --> CTX[Product Context]
         CTX --> CHOICE{Data Found?}
-    end
-
-    %% Column 3: Output & Observability
-    subgraph C3 [Response & Safety]
-        direction TB
         CHOICE -->|Yes| FOUND[Format Catalog Response]
         CHOICE -->|No| FALL[Main LLM Fallback + Disclaimer]
-        FOUND --> GOUT{Output Guardrail}
+        FOUND --> GOUT
         FALL --> GOUT
         GOUT --> FINAL[Final Result + TraceID]
         FINAL --> MLF[(MLflow Traces)]
         FINAL --> USER
     end
-
-    %% Force layout columns
-    C1 ~~~ C2 ~~~ C3
-
-    class EMB internal;
+    
+    class GIN,GOUT guard;
+    class AGENT,TOOL,EMB,FOUND,FALL dev;
 
 ```
 ### Operations
 ```mermaid
 graph LR
-    %% Global Styles
-    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000,font-size:12px;
-    classDef secondary stroke-dasharray: 4 4;
+    %% Operations Focus Styles
+    classDef default fill:#fff,stroke:#000,stroke-width:1px,color:#000;
+    classDef ops fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef gov fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
 
-    subgraph R1 [Phases 1 & 2: Build & Orchestrate]
-        direction TB
-        subgraph "1. IaC (DAB)"
-            DAB[databricks.yml] --- WHEEL[Python Wheel]
-            DAB --- VARS[Configs]
-        end
-        subgraph "2. Orchestration"
-            JOB[DAB Job] --> TASK1[Ingest CSV]
-            TASK1 --- CDF[CDF Enabled]
-            TASK1 --> TASK2[Create Vector]
-        end
+    subgraph GOV [Unity Catalog Governance]
+        UC{Unity Catalog}
+        TABLES[(Delta Tables)]
+        FUNCS[Search Functions / Tools]
+        MODELS[Agent Models]
+        UC --- TABLES
+        UC --- FUNCS
+        UC --- MODELS
     end
 
-    subgraph R2 [Phase 3: Governance]
-        direction TB
-        UC{Unity Catalog} --- TABLES[(Delta Tables)]
-        UC --- FUNCS[Search Tools]
-        UC --- MODELS[Agent Models]
+    subgraph Pipeline [Operational Workflow]
+        DAB[databricks.yml Blueprint] --- WHEEL[Python Wheel Packaging]
+        DAB --- VARS[YAML Configs: No Hardcoding]
+        DAB --> JOB[DAB Job Trigger]
+        JOB --> TASK1[Task: Ingest CSV to Delta]
+        TASK1 --- CDF[Change Data Feed Enabled]
+        TASK1 --> TASK2[Task: Create Vector Index]
         TASK2 --> UC
+        MODELS --> TASK3[Task: Deploy Agent to Mosaic]
+        TASK3 --- DOCS[Auto-Docstring Generation]
+        DOCS --> SUMM[Weak LLM: Code & Arch Summary]
+        TASK3 --> REST[REST API Serving Endpoint]
+        REST --- MLF[(MLflow Trace & Lineage UI)]
+        REST -.-> DEL[Task: Resource Cleanup / Delete]
     end
 
-    subgraph R3 [Phases 4 & 5: AI Maintenance & Serving]
-        direction TB
-        subgraph "4. AI Maintenance"
-            MODELS --> TASK3[Deploy Agent]
-            TASK3 --- DOCS[Auto-Docs]
-            DOCS --> SUMM[LLM Summary]
-        end
-        subgraph "5. Serving"
-            TASK3 --> REST[REST API]
-            REST --- MLF[(MLflow Trace)]
-            REST -.-> DEL[Cleanup]
-        end
-    end
-
-    %% Visual spacing
-    R1 ~~~ R2 ~~~ R3
-
-    class CDF,DOCS,SUMM secondary;
-
+    class JOB,TASK1,TASK2,TASK3,REST,DEL ops;
+    class UC,TABLES,FUNCS,MODELS gov;
 ```
 
