@@ -193,98 +193,97 @@ databricks bundle run app-ui --target dev
 
 ### Development
 ```mermaid
-graph TD
-    User((User / Streamlit UI)) -->|1. Query| GuardIn{Input Guardrail}
-    GuardIn -->|Unsafe| Abort[Policy Violation Redaction]
-    
-    subgraph "Agent Decision Logic"
-    GuardIn -->|Safe| Agent[Electronics Agent]
-    Agent -->|2. Internal Prompt| SystemPrompt[Prompt: Use Catalog First]
-    Agent -->|3. Tool Metadata| ToolDesc[Function Comments]
-    Agent -->|4. Decides to Use| Tool[UC Search Tool]
+graph LR
+    %% Global Styles
+    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000;
+    classDef internal stroke-dasharray: 5 5;
+
+    %% Column 1: Input & Brain
+    subgraph C1 [Input & Processing]
+        direction TB
+        USER((User / Streamlit UI)) --> GIN{Input Guardrail}
+        GIN -->|Safe Query| AGENT[Main LLM / Agent]
+        AGENT --- PROMPT[System Prompt: Catalog First]
+        AGENT --- META[Tool Metadata / Comments]
     end
 
-    subgraph "Hybrid Search Mechanism"
-    Tool -->|5. Embed Query| EmbedLLM[Embedding LLM]
-    EmbedLLM -->|Vector Search| VIndex[Description Vector Index]
-    Tool -->|Keyword Search| Category[Category Column]
-    VIndex & Category -->|Retrieve| Context[Delta Lake Context]
+    %% Column 2: Search & Logic
+    subgraph C2 [Vector & Retrieval Logic]
+        direction TB
+        AGENT --> TOOL[UC Search Tool / Function]
+        TOOL --> VSE[Vector Search Endpoint]
+        subgraph Internal [Internal Embedding Logic]
+            EMB((Embedding LLM)) -.-> VIX[(Vector Index Table)]
+        end
+        VSE -.-> EMB
+        VIX --> CTX[Product Context]
+        CTX --> CHOICE{Data Found?}
     end
 
-    subgraph "Response Generation"
-    Context -->|6. Check Data| Choice{Found in Catalog?}
-    Choice -->|Yes| Finalize[Format Agent Response]
-    Choice -->|No| Foundation[Foundational LLM + Source Note]
-    Foundation --> Finalize
+    %% Column 3: Output & Observability
+    subgraph C3 [Response & Safety]
+        direction TB
+        CHOICE -->|Yes| FOUND[Format Catalog Response]
+        CHOICE -->|No| FALL[Main LLM Fallback + Disclaimer]
+        FOUND --> GOUT{Output Guardrail}
+        FALL --> GOUT
+        GOUT --> FINAL[Final Result + TraceID]
+        FINAL --> MLF[(MLflow Traces)]
+        FINAL --> USER
     end
 
-    Finalize --> GuardOut{Output Guardrail}
-    GuardOut -->|Safe| Success[Final Result + TraceID]
-    Success -->|7. Observe| MLflow[(MLflow Traces)]
-    Success --> User
+    %% Force layout columns
+    C1 ~~~ C2 ~~~ C3
+
+    class EMB internal;
 
 ```
 ### Operations
 ```mermaid
-graph TD
-    subgraph "1. Infrastructure as Code (DAB)"
-        DAB[databricks.yml Blueprint]
-        WHEEL[Python Wheel Packaging]
-        CONFIG[YAML Configs: No Hardcoding]
-        
-        DAB --- WHEEL
-        DAB --- CONFIG
+graph LR
+    %% Global Styles
+    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000,font-size:12px;
+    classDef secondary stroke-dasharray: 4 4;
+
+    subgraph R1 [Phases 1 & 2: Build & Orchestrate]
+        direction TB
+        subgraph "1. IaC (DAB)"
+            DAB[databricks.yml] --- WHEEL[Python Wheel]
+            DAB --- VARS[Configs]
+        end
+        subgraph "2. Orchestration"
+            JOB[DAB Job] --> TASK1[Ingest CSV]
+            TASK1 --- CDF[CDF Enabled]
+            TASK1 --> TASK2[Create Vector]
+        end
     end
 
-    subgraph "2. Automated Orchestration (Jobs & Tasks)"
-        JOB[DAB Job Trigger]
-        TASK1[Task: Ingest CSV to Delta Lake]
-        CDF[Change Data Feed Enabled]
-        TASK2[Task: Create Vector Index & Endpoint]
-        TASK3[Task: Deploy Agent to Mosaic AI]
-        DELETE[Task: Resource Cleanup / Delete]
-
-        JOB --> TASK1
-        TASK1 --- CDF
-        TASK1 --> TASK2
-        TASK2 --> TASK3
-        TASK3 -.-> DELETE
+    subgraph R2 [Phase 3: Governance]
+        direction TB
+        UC{Unity Catalog} --- TABLES[(Delta Tables)]
+        UC --- FUNCS[Search Tools]
+        UC --- MODELS[Agent Models]
+        TASK2 --> UC
     end
 
-    subgraph "3. Governance Layer (Unity Catalog)"
-        UC{Unity Catalog}
-        TABLES[(Delta Tables)]
-        FUNCS[Search Functions / Tools]
-        MODELS[Agent Models]
-        
-        UC --- TABLES
-        UC --- FUNCS
-        UC --- MODELS
+    subgraph R3 [Phases 4 & 5: AI Maintenance & Serving]
+        direction TB
+        subgraph "4. AI Maintenance"
+            MODELS --> TASK3[Deploy Agent]
+            TASK3 --- DOCS[Auto-Docs]
+            DOCS --> SUMM[LLM Summary]
+        end
+        subgraph "5. Serving"
+            TASK3 --> REST[REST API]
+            REST --- MLF[(MLflow Trace)]
+            REST -.-> DEL[Cleanup]
+        end
     end
 
-    subgraph "4. AI-Assisted Maintenance"
-        COPY[Project Copy Task]
-        DOCS[Auto-Docstring Generation]
-        SUMMARY[Weak LLM: Code & Arch Summary]
-        
-        COPY --> DOCS
-        DOCS --> SUMMARY
-    end
+    %% Visual spacing
+    R1 ~~~ R2 ~~~ R3
 
-    subgraph "5. Production Support & Observability"
-        REST[REST API Serving Endpoint]
-        MLFLOW[(MLflow Trace & Lineage UI)]
-        STREAM[Streamlit UI Connection]
-    end
-
-    %% Connection Flows
-    DAB -->|Deploy Bundle| JOB
-    TASK3 -->|Register Artifacts| UC
-    UC -->|Served via| REST
-    REST -->|Logs TraceID| MLFLOW
-    STREAM -->|Queries| REST
-e
-
+    class CDF,DOCS,SUMM secondary;
 
 ```
 
